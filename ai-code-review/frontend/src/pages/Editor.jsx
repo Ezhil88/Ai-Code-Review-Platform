@@ -6,7 +6,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { Zap, Share2, Sparkles, History } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
 const ANALYSIS_HISTORY_KEY = 'analyses';
 
 function getApiErrorMessage(err, actionLabel = 'request') {
@@ -22,7 +22,7 @@ function getApiErrorMessage(err, actionLabel = 'request') {
   }
 
   if (err?.request) {
-    return `Cannot reach backend server on ${API_BASE_URL}. Make sure Node.js server is running on port 5000.`;
+    return `Cannot reach backend server on ${API_BASE_URL || 'the same host domain'}. Make sure backend is running.`;
   }
 
   return `Unexpected error while trying to ${actionLabel}: ${err?.message || 'Unknown error'}`;

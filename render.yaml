@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: ai-code-review-platform
+    runtime: node
+    rootDir: ai-code-review
+    plan: free
+    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci
+    startCommand: cd backend && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
