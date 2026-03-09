@@ -5,17 +5,17 @@ const https = require("https");
 const MultiLanguageAnalyzer = require("./analyzer-multi");
 
 const app = express();
-const frontendDistPath = path.join(__dirname, "..", "frontend", "dist");
 const sharedSessions = new Map();
 
 // Allow frontend to communicate with backend
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()) : "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 // Allow JSON data with larger payload
 app.use(express.json({ limit: "10mb" }));
-
-// Serve built React frontend
-app.use(express.static(frontendDistPath));
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -242,27 +242,15 @@ function mapExtensionToLanguage(filePath) {
   return map[extension] || null;
 }
 
-// SPA fallback for client-side routes (non-API requests)
-app.get("/{*splat}", (req, res) => {
-  if (
-    req.path.startsWith("/analyze") ||
-    req.path.startsWith("/health") ||
-    req.path.startsWith("/explain") ||
-    req.path.startsWith("/analyze-repo") ||
-    req.path.startsWith("/share-session") ||
-    req.path.startsWith("/shared-session")
-  ) {
-    return res.status(404).json({ error: "Endpoint not found" });
-  }
-
-  return res.sendFile(path.join(frontendDistPath, "index.html"));
+// API-only backend: return JSON for unknown routes instead of serving frontend files.
+app.use((req, res) => {
+  return res.status(404).json({ error: "Endpoint not found" });
 });
 
 function startServer(port = process.env.PORT || 5000) {
   return app.listen(port, () => {
     console.log(`🚀 Server running on http://localhost:${port}`);
     console.log(`📊 API available at http://localhost:${port}/analyze`);
-    console.log(`🌐 Frontend served from ${frontendDistPath}`);
   });
 }
 
