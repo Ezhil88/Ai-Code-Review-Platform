@@ -6,7 +6,11 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { Zap, Share2, Sparkles, History } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
+// API Base URL configuration
+// - Development: uses VITE_API_BASE_URL or defaults to localhost:5000
+// - Production: uses VITE_API_BASE_URL (set in .env.production) or falls back to same-origin
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+  || (import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin);
 const ANALYSIS_HISTORY_KEY = 'analyses';
 
 function normalizeAnalysisResult(payload) {
