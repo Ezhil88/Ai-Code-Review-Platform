@@ -73,6 +73,9 @@ export default function DashboardPreview() {
                 </motion.h3>
                 <p className="text-xl font-bold" style={{ color: '#6366f1' }}>B.E Electronics & Communication</p>
                 <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>Full-Stack Developer | Code Quality Enthusiast</p>
+                <p className="text-sm mt-2" style={{ color: '#10b981' }}>
+                  GitHub: <a href="https://github.com/Ezhil88" target="_blank" rel="noopener noreferrer" className="underline">github.com/Ezhil88</a>
+                </p>
                 <p className="text-base font-bold mt-4" style={{ color: '#ec4899' }}>
                   +91 8807257258
                 </p>
@@ -101,7 +104,7 @@ export default function DashboardPreview() {
                 </motion.a>
                 
                 <motion.a
-                  href="https://github.com/ezhilan"
+                  href="https://github.com/Ezhil88"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.15, y: -5 }}
