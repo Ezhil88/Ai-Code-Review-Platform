@@ -9,6 +9,29 @@ import axios from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
 const ANALYSIS_HISTORY_KEY = 'analyses';
 
+function normalizeAnalysisResult(payload) {
+  const candidate = payload?.result || payload?.data || payload;
+
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+    return null;
+  }
+
+  const normalizedIssues = Array.isArray(candidate.issues) ? candidate.issues : [];
+  const normalizedScore = Number.isFinite(candidate.code_quality_score)
+    ? candidate.code_quality_score
+    : (Number.isFinite(candidate.score) ? candidate.score : 0);
+
+  return {
+    ...candidate,
+    code_quality_score: normalizedScore,
+    score: Number.isFinite(candidate.score) ? candidate.score : normalizedScore,
+    total_issues: Number.isFinite(candidate.total_issues)
+      ? candidate.total_issues
+      : normalizedIssues.length,
+    issues: normalizedIssues,
+  };
+}
+
 function getApiErrorMessage(err, actionLabel = 'request') {
   if (err?.response) {
     const status = err.response.status;
@@ -132,17 +155,24 @@ export default function Editor() {
       };
 
       const response = await axios.post(`${API_BASE_URL}/analyze`, requestPayload);
-      setResult(response.data);
+      const normalizedResult = normalizeAnalysisResult(response.data);
+
+      if (!normalizedResult) {
+        throw new Error('Backend returned an invalid analysis payload.');
+      }
+
+      setResult(normalizedResult);
 
       const analysisEntry = {
         code,
         input: programInput,
         language: selectedLanguage,
         timestamp: new Date().toISOString(),
-        result: response.data,
+        result: normalizedResult,
       };
       persistHistory(analysisEntry);
     } catch (err) {
+      setResult(null);
       setError(getApiErrorMessage(err, 'analyze code'));
     } finally {
       setIsLoading(false);
@@ -215,7 +245,7 @@ export default function Editor() {
     setCode(item.code || '');
     setProgramInput(item.input || '');
     setSelectedLanguage(item.language || 'auto');
-    setResult(item.result || null);
+    setResult(normalizeAnalysisResult(item.result) || null);
   };
 
   return (
@@ -406,7 +436,7 @@ export default function Editor() {
                         }}
                         onClick={() => loadHistoryItem(item)}
                       >
-                        Run #{item?.runNumber ?? index + 1} | Score: {item?.result?.score ?? 'N/A'}
+                        Run #{item?.runNumber ?? index + 1} | Score: {item?.result?.score ?? item?.result?.code_quality_score ?? 'N/A'}
                       </button>
                     ))}
                   </div>
